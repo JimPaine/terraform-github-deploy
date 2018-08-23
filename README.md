@@ -1,6 +1,6 @@
 # terraform-github-deploy
 
-Deploys a new "empty" App Service and configure a GitHub repo webhook to call ont the kudu deploy endpoint.
+Deploys a new "empty" App Service and configure a GitHub repo webhook to call on to the kudu deploy endpoint.
 
 ## Step 1
 
