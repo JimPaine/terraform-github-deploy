@@ -7,7 +7,7 @@ variable "githubrepo" {
 }
 
 variable "github_token" {
-    default = "token"
+    default = "[token]"
 }
 
 provider "azurerm" {
@@ -21,7 +21,7 @@ provider "random" {
 provider "github" {
   version      = "1.2.1"
   token        = "${var.github_token}"
-  organization = "org"
+  organization = "JimPaine"
 }
 
 resource "azurerm_resource_group" "demo" {
@@ -50,30 +50,21 @@ resource "azurerm_app_service_plan" "demo" {
   name                = "azure-functions-${var.resource_name}-service-plan"
   location            = "${azurerm_resource_group.demo.location}"
   resource_group_name = "${azurerm_resource_group.demo.name}"
-  kind                = "FunctionApp"
 
   sku {
-    tier = "Dynamic"
-    size = "Y1"
+    tier = "Standard"
+    size = "S1"
   }
 }
 
-resource "azurerm_function_app" "demo" {
+resource "azurerm_app_service" "demo" {
   name                      = "${var.resource_name}${random_id.demo.dec}"
   location                  = "${azurerm_resource_group.demo.location}"
   resource_group_name       = "${azurerm_resource_group.demo.name}"
   app_service_plan_id       = "${azurerm_app_service_plan.demo.id}"
-  storage_connection_string = "${azurerm_storage_account.demo.primary_connection_string}"
 
-  # looks like at the moment for v2 http version has to be http1.1 and app has to be 32bit
-  version = "beta"
-
-  app_settings {
-    FUNCTIONS_EXTENSION_VERSION = "2.0.11961-alpha" #temp pin to avoid breaking changes in next release
-  }
-
-  identity {
-    type = "SystemAssigned"
+  site_config {
+    scm_type = "LocalGit"
   }
 }
  
@@ -83,7 +74,7 @@ resource "github_repository_webhook" "demo" {
   name = "web"
 
   configuration {
-    url          = "https://${azurerm_function_app.demo.site_credential.0.username}:${azurerm_function_app.demo.site_credential.0.password}@${var.resource_name}${random_id.demo.dec}.scm.azurewebsites.net/deploy"
+    url          = "https://${azurerm_app_service.demo.site_credential.0.username}:${azurerm_app_service.demo.site_credential.0.password}@${var.resource_name}${random_id.demo.dec}.scm.azurewebsites.net/deploy"
     content_type = "json"
     insecure_ssl = false
   }
